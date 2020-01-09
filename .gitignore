@@ -134,3 +134,4 @@ dmypy.json
 
 # API Keys
 twitter_api_constants.py
+twitter_seed.py

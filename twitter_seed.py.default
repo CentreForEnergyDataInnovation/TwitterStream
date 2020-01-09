@@ -1,0 +1,16 @@
+import pymongo
+
+MONGO = pymongo.MongoClient("mongodb://localhost:27017")
+
+MONGO.drop_database("twitters")
+
+twitter_db = MONGO["twitters"]
+trackers_hashtags = twitter_db["trackersHashtags"]
+trackers_users = twitter_db["trackersUsers"]
+update_settings = twitter_db["updated"]
+
+trackers_hashtags.insert_one({ "term" : "#hashtag" })
+
+trackers_users.insert_one({ "screen_name" : "screen_name", "checked" : False })
+
+update_settings.insert_one({ "updated" : False })
