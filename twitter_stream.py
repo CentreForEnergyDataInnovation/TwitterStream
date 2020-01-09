@@ -104,7 +104,8 @@ def process_tweet(tweet):
 api = TwitterAPI(
     CONSUMER_KEY,
     CONSUMER_SECRET,
-    auth_type="oAuth2"
+    ACCESS_TOKEN_KEY,
+    ACCESS_TOKEN_SECRET
 )
 
 # Set up global search terms
