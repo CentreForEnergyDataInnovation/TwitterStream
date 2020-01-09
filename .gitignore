@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# VSCode
+.vscode
+.vscode/*
+
+# API Keys
+twitter_api_constants.py
