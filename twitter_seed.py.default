@@ -4,7 +4,14 @@ from twitter_api_constants import *
 
 MONGO = pymongo.MongoClient(MONGO_CONNECTION_STRING)
 
-MONGO.drop_database("twitters")
+try:
+    MONGO.drop_database("twitters")
+except:
+    twitter_db = MONGO["twitters"]
+    r = twitter_db.list_collection_names()
+
+    for item in r:
+        twitter_db[item].drop()
 
 twitter_db = MONGO["twitters"]
 trackers_hashtags = twitter_db["trackersHashtags"]
