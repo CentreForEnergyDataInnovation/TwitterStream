@@ -71,3 +71,5 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree):
                     }
                 }
             )
+
+        return tweet["_id"]
