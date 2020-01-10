@@ -1,5 +1,7 @@
 import pymongo
 
+from twitter_api_constants import *
+
 MONGO = pymongo.MongoClient(MONGO_CONNECTION_STRING)
 
 MONGO.drop_database("twitters")
