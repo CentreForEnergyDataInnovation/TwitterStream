@@ -1,5 +1,6 @@
-import datetime
+from datetime import datetime
 import pymongo
+import pytz
 
 from TwitterAPI import TwitterAPI
 from TwitterAPI import TwitterResponse
@@ -55,7 +56,7 @@ def process_tweet(tweet):
             "user_id_str" : tweet["user"]["_id"],
             "screen_name" : tweet['user']['screen_name'],
             "quoter" : quote,
-            "scrape_time" : datetime.datetime.utcnow()
+            "scrape_time" : datetime.utcnow()
         }
         users_to_search.replace_one({ "_id" : tweet["_id"] }, source_tweet, True)
         
@@ -74,6 +75,7 @@ def process_tweet(tweet):
              "in_reply_to_status_id" : tweet["in_reply_to_status_id"],
              "quoted_status_id_str" : tweet["quoted_status_id_str"] if "quoted_status_id_str" in tweet else None,
              "created_at" : tweet["created_at"],
+             "created_at_dt" : datetime.strptime(tweet["created_at"],'%a %b %d %H:%M:%S +0000 %Y').replace(tzinfo=pytz.UTC),
              "entities" : tweet["entities"],
              "quote_count" : tweet["quote_count"],
              "reply_count" : tweet["reply_count"],
