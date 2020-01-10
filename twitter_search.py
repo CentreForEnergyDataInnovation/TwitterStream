@@ -19,7 +19,7 @@ api = TwitterAPI(
 
 # Set up Mongo
 
-MONGO = pymongo.MongoClient("mongodb://localhost:27017")
+MONGO = pymongo.MongoClient(MONGO_CONNECTION_STRING)
 twitter_db = MONGO["twitters"]
 trackers_hashtags = twitter_db["trackersHashtags"]
 trackers_users = twitter_db["trackersUsers"]
