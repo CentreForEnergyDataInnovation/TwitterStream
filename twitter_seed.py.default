@@ -1,6 +1,6 @@
 import pymongo
 
-MONGO = pymongo.MongoClient("mongodb://localhost:27017")
+MONGO = pymongo.MongoClient(MONGO_CONNECTION_STRING)
 
 MONGO.drop_database("twitters")
 
