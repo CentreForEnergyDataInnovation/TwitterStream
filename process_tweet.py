@@ -22,6 +22,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree):
     if retweet == False:
         users.replace_one({ "_id" : tweet["user"]["_id"] }, tweet["user"], True)
 
+        """
         source_tweet = {
             "_id" : tweet["_id"],
             "user_id_str" : tweet["user"]["_id"],
@@ -30,6 +31,22 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree):
             "scrape_time" : datetime.utcnow()
         }
         users_to_search.replace_one({ "_id" : tweet["_id"] }, source_tweet, True)
+        """
+
+        users_to_search.update_one(
+            { "_id" : tweet["_id"] },
+            {
+                "$set" : {
+                    "user_id_str" : tweet["user"]["_id"],
+                    "screen_name" : tweet['user']['screen_name'],
+                    "created_at" : tweet["created_at"],
+                    "created_at_dt" : datetime.strptime(tweet["created_at"],'%a %b %d %H:%M:%S +0000 %Y').replace(tzinfo=pytz.UTC),
+                    "quoter" : quote,
+                    "scrape_time" : datetime.utcnow()
+                }
+            },
+            True
+        )
         
         tweets.replace_one({ "_id" : tweet["_id"] }, tweet, True)
 
