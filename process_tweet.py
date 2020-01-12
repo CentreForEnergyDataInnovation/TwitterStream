@@ -60,7 +60,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree):
             "_id" : tweet["_id"],
              "tweet_text" : tweet_text,
              "user_id_str" : tweet["user"]["_id"],
-             "in_reply_to_status_id" : tweet["in_reply_to_status_id"],
+             "in_reply_to_status_id_str" : tweet["in_reply_to_status_id_str"],
              "quoted_status_id_str" : tweet["quoted_status_id_str"] if "quoted_status_id_str" in tweet else None,
              "created_at" : tweet["created_at"],
              "created_at_dt" : datetime.strptime(tweet["created_at"],'%a %b %d %H:%M:%S +0000 %Y').replace(tzinfo=pytz.UTC),

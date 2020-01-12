@@ -1,0 +1,53 @@
+from datetime import datetime, timezone, timedelta
+import time
+import pymongo
+from pymongo.collation import Collation
+import pytz
+
+from TwitterAPI import TwitterAPI
+from TwitterAPI import TwitterPager
+
+from twitter_api_constants import *
+
+from process_tweet import process_tweet
+
+MONGO = pymongo.MongoClient(MONGO_CONNECTION_STRING)
+twitter_db = MONGO["twitters"]
+trackers_hashtags = twitter_db["trackersHashtags"]
+trackers_users = twitter_db["trackersUsers"]
+update_settings = twitter_db["updated"]
+
+tweets = twitter_db["tweets"]
+users = twitter_db["users"]
+users_to_search = twitter_db["usersToSearch"]
+tweets_to_collect = twitter_db["tweetsToCollect"]
+tweet_tree = twitter_db["tweetTree"]
+poll_seed = twitter_db["pollSeed"]
+
+print("Constructing Tree")
+"""
+for item in tweet_tree.find().sort("_id", 1).collation(Collation(locale="en_US",numericOrdering=True)):
+    print(item)
+    tweet_id = item["_id"]
+    reply_to_id = item["in_reply_to_status_id"]
+
+    if reply_to_id is None:
+        print(tweet_id)
+"""
+
+countnum = 0
+
+for item in tweet_tree.find({ "in_reply_to_status_id_str" : { "$exists" : False }} ).sort("_id", 1).collation(Collation(locale="en_US",numericOrdering=True)):
+    countnum += 1
+    tweet_id = item["_id"]
+    tweet = tweets.find_one({ "_id" : tweet_id })
+    in_reply_to_status_id_str = tweet["in_reply_to_status_id_str"]
+    tweet_tree.update_one(
+        { "_id" : tweet_id },
+        {
+            "$set" : {
+                "in_reply_to_status_id_str" : in_reply_to_status_id_str
+            }
+        }
+    )
+    print(countnum)
