@@ -37,9 +37,14 @@ for item in tweet_tree.find().sort("_id", 1).collation(Collation(locale="en_US",
 
 countnum = 0
 
-for item in tweet_tree.find({ "in_reply_to_status_id_str" : { "$exists" : False }} ).sort("_id", 1).collation(Collation(locale="en_US",numericOrdering=True)):
+while True:
+    tweetchange = tweet_tree.find_one({ "in_reply_to_status_id_str" : { "$exists" : False }} )
+
+    if tweetchange is None:
+        break
+
     countnum += 1
-    tweet_id = item["_id"]
+    tweet_id = tweetchange["_id"]
     tweet = tweets.find_one({ "_id" : tweet_id })
     in_reply_to_status_id_str = tweet["in_reply_to_status_id_str"]
     tweet_tree.update_one(
