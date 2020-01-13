@@ -81,7 +81,7 @@ while True:
 
     for item in r:
         if "stop" not in item:
-            process_tweet(item, users, users_to_search, tweets, tweet_tree)
+            process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
 
         checking = update_settings.find_one()
 

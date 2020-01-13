@@ -35,7 +35,7 @@ tweet_count = 0
 retweet_count = 0
 total_count = 0
 
-r = TwitterPager(api, "search/tweets", { "q" : SEARCH_TERM, "count" : SEARCH_COUNT, "result_type" : "recent" })
+r = TwitterPager(api, "search/tweets", { "q" : SEARCH_TERM, "count" : SEARCH_COUNT, "result_type" : "recent", "tweet_mode" : "extended" })
 
 for item in r.get_iterator():
     total_count += 1
@@ -43,7 +43,7 @@ for item in r.get_iterator():
         retweet_count += 1
     else:
         tweet_count += 1
-        process_tweet(item, users, users_to_search, tweets, tweet_tree)
+        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
     
     if "message" in item and item["code"] == 88:
         print("RATELIMIT")
