@@ -52,29 +52,16 @@ while True:
         print(statusCheckNum)
 
     while True:
-        """
-        tweetCheck = tweet_tree.find(
-            {
-                "scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]},
-            }
-        ).sort("_id", 1).collation(Collation(locale="en_US", numericOrdering=True)).limit(1)
-        
-
-
-        if tweetCheck.count() == 0:
-            print("cycle")
-            break
-
-        print("tree building: " + tweetCheck[0]["_id"])
-        """
+        cyclecount += 1
 
         #tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
         tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}})
         if tweetCheck is None:
+            cyclecount = 0
             print("cycle")
             break
         
-        print("tree building: " + tweetCheck["_id"])
+        print(str(cyclecount) + " - tree building: " + tweetCheck["_id"])
         hashtags_in_tree = set()
         users_in_tree = set()
 
@@ -196,41 +183,3 @@ while True:
                                 }
                             }
                         )
-
-    while tweets_to_collect.count_documents({}) > 0:
-
-        tweetsToCollect = []
-        for item in tweets_to_collect.find().sort("_id", 1).collation(Collation(locale="en_US", numericOrdering=True)).limit(100):
-            tweetsToCollect.append(item["_id"])
-            tweets_to_collect.delete_one({"_id" : item["_id"]})
-        
-        tweetsToSearch = (",").join(tweetsToCollect)
-        print("reply lookup: " +tweetsToSearch)
-        r = api.request("statuses/lookup", { "id" : tweetsToSearch, "tweet_mode" : "extended", "map" : True})
-
-        for item in r:
-            for subitem in item["id"]:
-                if item["id"][subitem] is not None:
-                    process_tweet(item["id"][subitem], users, users_to_search, tweets, tweet_tree, tweets_to_collect)
-                else:
-                    tweet_tree.insert_one(
-                        {
-                            "_id" : subitem,
-                            "tweet_text" : "This Tweet is unavailable.",
-                            "user_id_str" : None,
-                            "in_reply_to_status_id_str" : None,
-                            "quoted_status_id_str" : None,
-                            "created_at" : None,
-                            "created_at_dt" : None,
-                            "entities" : None,
-                            "quote_count" : 0,
-                            "reply_count" : 0,
-                            "retweet_count" : 0,
-                            "favorite_count" : 0,
-                            "ancestors" : [],
-                            "scrape_status": "Root"
-                        }
-                    )
-        
-        time.sleep(5)
-
