@@ -69,6 +69,10 @@ while True:
         """
 
         tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+        if tweetCheck is None:
+            print("cycle")
+            break
+        
         print("tree building: " + tweetCheck["_id"])
         hashtags_in_tree = set()
         users_in_tree = set()
