@@ -68,7 +68,8 @@ while True:
         print("tree building: " + tweetCheck[0]["_id"])
         """
 
-        tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+        #tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+        tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}})
         if tweetCheck is None:
             print("cycle")
             break
@@ -135,7 +136,7 @@ while True:
                     }
                 )
             else:
-                if parentTweet["scrape_status"] == "Root":
+                if "scrape_status" in parentTweet and parentTweet["scrape_status"] == "Root":
                     tweet_tree.update_one(
                         {"_id": parentTweet["_id"]},
                         {
