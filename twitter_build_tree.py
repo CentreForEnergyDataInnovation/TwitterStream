@@ -52,36 +52,42 @@ while True:
         print(statusCheckNum)
 
     while True:
+        """
         tweetCheck = tweet_tree.find(
             {
                 "scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]},
             }
         ).sort("_id", 1).collation(Collation(locale="en_US", numericOrdering=True)).limit(1)
+        
+
 
         if tweetCheck.count() == 0:
             print("cycle")
             break
 
         print("tree building: " + tweetCheck[0]["_id"])
+        """
 
+        tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+        print("tree building: " + tweetCheck["_id"])
         hashtags_in_tree = set()
         users_in_tree = set()
 
-        users_in_tree.add(tweetCheck[0]["user_id_str"])
+        users_in_tree.add(tweetCheck["user_id_str"])
 
-        for x in tweetCheck[0]["entities"]["hashtags"]:
+        for x in tweetCheck["entities"]["hashtags"]:
             hashtags_in_tree.add(x["text"].lower())
-        for x in tweetCheck[0]["entities"]["user_mentions"]:
+        for x in tweetCheck["entities"]["user_mentions"]:
             users_in_tree.add(x["id_str"])
 
-        if tweetCheck[0]["quoted_status_id_str"] is not None:
+        if tweetCheck["quoted_status_id_str"] is not None:
             quoteTweet = tweet_tree.find_one(
-                {"_id": tweetCheck[0]["quoted_status_id_str"]})
+                {"_id": tweetCheck["quoted_status_id_str"]})
             if quoteTweet is None:
-                tweets_to_collect.replace_one({"_id": tweetCheck[0]["quoted_status_id_str"]}, {
-                                            "_id": tweetCheck[0]["quoted_status_id_str"]}, True)
+                tweets_to_collect.replace_one({"_id": tweetCheck["quoted_status_id_str"]}, {
+                                            "build_tree": True}, True)
                 tweet_tree.update_one(
-                    {"_id": tweetCheck[0]["_id"]},
+                    {"_id": tweetCheck["_id"]},
                     {
                         "$set": {
                             "scrape_status": str(statusCheckNum)
@@ -97,9 +103,9 @@ while True:
                         users_in_tree.add(x["id_str"])
                     users_in_tree.add(quoteTweet["user_id_str"])
 
-        if tweetCheck[0]["in_reply_to_status_id_str"] is None:
+        if tweetCheck["in_reply_to_status_id_str"] is None:
             tweet_tree.update_one(
-                {"_id": tweetCheck[0]["_id"]},
+                {"_id": tweetCheck["_id"]},
                 {
                     "$set": {
                         "scrape_status": "Root"
@@ -112,12 +118,12 @@ while True:
             )
         else:
             parentTweet = tweet_tree.find_one(
-                {"_id": tweetCheck[0]["in_reply_to_status_id_str"]})
+                {"_id": tweetCheck["in_reply_to_status_id_str"]})
             if parentTweet is None:
-                tweets_to_collect.replace_one({"_id": tweetCheck[0]["in_reply_to_status_id_str"]}, {
+                tweets_to_collect.replace_one({"_id": tweetCheck["in_reply_to_status_id_str"]}, {
                                             "build_tree": True}, True)
                 tweet_tree.update_one(
-                    {"_id": tweetCheck[0]["_id"]},
+                    {"_id": tweetCheck["_id"]},
                     {
                         "$set": {
                             "scrape_status": str(statusCheckNum)
@@ -136,7 +142,7 @@ while True:
                         }
                     )
                     tweet_tree.update_one(
-                        {"_id": tweetCheck[0]["_id"]},
+                        {"_id": tweetCheck["_id"]},
                         {
                             "$set": {
                                 "scrape_status": "Linked"
@@ -166,7 +172,7 @@ while True:
                         ancest = parentTweet["ancestors"]
                         ancest.append(parentTweet["_id"])
                         tweet_tree.update_one(
-                            {"_id": tweetCheck[0]["_id"]},
+                            {"_id": tweetCheck["_id"]},
                             {
                                 "$set": {
                                     "scrape_status": "Linked"
@@ -178,7 +184,7 @@ while True:
                         )
                     else:
                         tweet_tree.update_one(
-                            {"_id": tweetCheck[0]["_id"]},
+                            {"_id": tweetCheck["_id"]},
                             {
                                 "$set": {
                                     "scrape_status": str(statusCheckNum)
