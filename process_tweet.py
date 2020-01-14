@@ -21,7 +21,12 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
         del tweet["quoted_status"]
         quote = True
     
-    tweet["_id"] = tweet["id_str"]
+    try:
+        tweet["_id"] = tweet["id_str"]
+    except:
+        print(tweet)
+        raise
+    
     tweet["user"]["_id"] = tweet["user"]["id_str"]
     
     if retweet == False:
