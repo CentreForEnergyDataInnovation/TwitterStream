@@ -119,7 +119,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
                         hashtags_in_tree.add(x["text"].lower())
                     for x in quoteTweet["entities"]["user_mentions"]:
                         users_in_tree.add(x["id_str"])
-                    users_in_tree.add(quoteTweet["user"]["user_id_str"])
+                    users_in_tree.add(quoteTweet["user"]["id_str"])
 
                 if "scrape_status" in parent and parent["scrape_status"] == "Root":
                     tweet_tree.update_one(

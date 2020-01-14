@@ -62,7 +62,7 @@ while True:
             print("cycle")
             break
 
-        print(tweetCheck[0]["_id"])
+        print("tree building: " + tweetCheck[0]["_id"])
 
         hashtags_in_tree = set()
         users_in_tree = set()
@@ -90,11 +90,12 @@ while True:
                 )
                 continue
             else:
-                for x in quoteTweet["entities"]["hashtags"]:
-                    hashtags_in_tree.add(x["text"].lower())
-                for x in quoteTweet["entities"]["user_mentions"]:
-                    users_in_tree.add(x["id_str"])
-                users_in_tree.add(quoteTweet["user_id_str"])
+                if quoteTweet["entities"] is not None:
+                    for x in quoteTweet["entities"]["hashtags"]:
+                        hashtags_in_tree.add(x["text"].lower())
+                    for x in quoteTweet["entities"]["user_mentions"]:
+                        users_in_tree.add(x["id_str"])
+                    users_in_tree.add(quoteTweet["user_id_str"])
 
         if tweetCheck[0]["in_reply_to_status_id_str"] is None:
             tweet_tree.update_one(
@@ -114,7 +115,7 @@ while True:
                 {"_id": tweetCheck[0]["in_reply_to_status_id_str"]})
             if parentTweet is None:
                 tweets_to_collect.replace_one({"_id": tweetCheck[0]["in_reply_to_status_id_str"]}, {
-                                            "_id": tweetCheck[0]["in_reply_to_status_id_str"]}, True)
+                                            "build_tree": True}, True)
                 tweet_tree.update_one(
                     {"_id": tweetCheck[0]["_id"]},
                     {
@@ -193,11 +194,32 @@ while True:
             tweets_to_collect.delete_one({"_id" : item["_id"]})
         
         tweetsToSearch = (",").join(tweetsToCollect)
-        print(tweetsToSearch)
-        r = api.request("statuses/lookup", { "id" : tweetsToSearch, "tweet_mode" : "extended"})
+        print("reply lookup: " +tweetsToSearch)
+        r = api.request("statuses/lookup", { "id" : tweetsToSearch, "tweet_mode" : "extended", "map" : True})
 
         for item in r:
-            process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+            for subitem in item["id"]:
+                if item["id"][subitem] is not None:
+                    process_tweet(item["id"][subitem], users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                else:
+                    tweet_tree.insert_one(
+                        {
+                            "_id" : subitem,
+                            "tweet_text" : "This Tweet is unavailable.",
+                            "user_id_str" : None,
+                            "in_reply_to_status_id_str" : None,
+                            "quoted_status_id_str" : None,
+                            "created_at" : None,
+                            "created_at_dt" : None,
+                            "entities" : None,
+                            "quote_count" : 0,
+                            "reply_count" : 0,
+                            "retweet_count" : 0,
+                            "favorite_count" : 0,
+                            "ancestors" : [],
+                            "scrape_status": "Root"
+                        }
+                    )
         
         time.sleep(5)
 
