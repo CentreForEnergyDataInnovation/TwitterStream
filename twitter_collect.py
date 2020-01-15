@@ -52,6 +52,8 @@ while True:
             if item["id"][subitem] is not None:
                 process_tweet(item["id"][subitem], users, users_to_search, tweets, tweet_tree, tweets_to_collect)
             else:
+                if tweet_tree.find_one({"_id":subitem}) is None:
+                    continue
                 tweet_tree.insert_one(
                     {
                         "_id" : subitem,
