@@ -79,7 +79,6 @@ while True:
         tweetIDs = []
 
         for u in users_to_search.find({ "user_id_str" : toSearch["user_id_str"], "reply_search_status" : { "$ne" : "Expired" } }):
-            print(u)
             if "newCheckpoint" in u and u["newCheckpoint"] is not None:
                 tweetIDs.append(u["newCheckpoint"])
             else:
