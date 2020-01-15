@@ -56,8 +56,6 @@ while True:
         toSearch = users_to_search.find_one({"reply_search_status": {"$nin": ["Expired", "Tracked", str(statusCheckNum)]}})
         cyclecount += 1
 
-        print(toSearch)
-
         if toSearch is None:
             cyclecount = 0
             print("cycle")
@@ -81,10 +79,8 @@ while True:
         tweetIDs = []
 
         for u in users_to_search.find({ "user_id_str" : toSearch["user_id_str"], "reply_search_status" : { "$ne" : "Expired" } }):
-            
             print(u)
-            
-            if "newCheckpoint" in u:
+            if "newCheckpoint" in u and u["newCheckpoint"] is not None:
                 tweetIDs.append(u["newCheckpoint"])
             else:
                 tweetIDs.append(u["_id"])
