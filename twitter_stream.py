@@ -61,6 +61,7 @@ users = twitter_db["users"]
 users_to_search = twitter_db["usersToSearch"]
 tweets_to_collect = twitter_db["tweetsToCollect"]
 tweet_tree = twitter_db["tweetTree"]
+exceptions = twitter_db["exceptions"]
 
 while True:
 
@@ -81,7 +82,10 @@ while True:
 
     for item in r:
         if "stop" not in item:
-            process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+            if "id_str" in item:
+                process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+            else:
+                exceptions.insert_one(item)
 
         checking = update_settings.find_one()
 

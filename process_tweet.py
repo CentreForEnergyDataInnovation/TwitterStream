@@ -4,8 +4,6 @@ import pytz
 
 def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect):
 
-    # TODO : Change to tweet_mode=extended
-
     retweet = False
     quote = False
 
