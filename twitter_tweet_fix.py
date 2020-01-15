@@ -40,7 +40,7 @@ tweets_staging = twitter_db["tweets_staging"]
 
 count = tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } })
 
-while tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } }) > 0:
+while count > 0:
 
     count -= 1
 
@@ -56,5 +56,8 @@ while tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : { "
     )
 
     print(count)
+
+    if count == 0:
+        count = tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } })
 
 print("done")
