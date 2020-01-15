@@ -189,7 +189,7 @@ while True:
         while True:
 
             
-            for staging_tweet in tweets_staging.find({}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True)):
+            for staging_tweet in tweets_staging.find({}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True)).limit(1000):
                 staging_count -= 1
 
                 tweet_id = staging_tweet["_id"]
@@ -224,6 +224,9 @@ while True:
                         print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"])
                         process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
+
+            if tweets_staging.count_documents({}) > 0:
+                continue
 
             print(screen_name + " - finished staging parsing")
             break
