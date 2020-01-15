@@ -55,6 +55,9 @@ while True:
         sCount = users_to_search.count_documents({"reply_search_status": {"$nin": ["Expired", "Tracked", str(statusCheckNum)]}})
         toSearch = users_to_search.find_one({"reply_search_status": {"$nin": ["Expired", "Tracked", str(statusCheckNum)]}})
         cyclecount += 1
+
+        print(toSearch)
+
         if toSearch is None:
             cyclecount = 0
             print("cycle")
@@ -78,6 +81,9 @@ while True:
         tweetIDs = []
 
         for u in users_to_search.find({ "user_id_str" : toSearch["user_id_str"], "reply_search_status" : { "$ne" : "Expired" } }):
+            
+            print(u)
+            
             if "newCheckpoint" in u:
                 tweetIDs.append(u["newCheckpoint"])
             else:
@@ -227,16 +233,29 @@ while True:
                     process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                     continue
 
-        users_to_search.update_many(
-            {
-                "user_id_str" : toSearch["user_id_str"],
-                "reply_search_status" : { "$ne" :"Expired" }
-            },
-            {
-                "$set" : {
-                    "reply_search_status" : str(statusCheckNum),
-                    "newCheckpoint" : oldest
+        if oldest is None:
+            users_to_search.update_many(
+                {
+                    "user_id_str" : toSearch["user_id_str"],
+                    "reply_search_status" : { "$ne" :"Expired" }
+                },
+                {
+                    "$set" : {
+                        "reply_search_status" : str(statusCheckNum)
+                    }
                 }
-            }
-        )
+            )
+        else:
+            users_to_search.update_many(
+                {
+                    "user_id_str" : toSearch["user_id_str"],
+                    "reply_search_status" : { "$ne" :"Expired" }
+                },
+                {
+                    "$set" : {
+                        "reply_search_status" : str(statusCheckNum),
+                        "newCheckpoint" : oldest
+                    }
+                }
+            )
         time.sleep(2.5)
