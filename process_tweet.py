@@ -48,17 +48,20 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
         alreadyExist = tweets.find_one({ "_id" : tweet["_id"] })
 
         if alreadyExist is None:
-            tweets.insert_one({ "_id" : tweet["_id"] }, tweet)
+            tweets.insert_one(tweet)
         else:
-            tweets.update_one(
-                { "_id" : tweet["_id"] },
-                {
-                    "$set" : {
-                        "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
-                        "favorite_count" : tweet["favorite_count"] if "favorite_count" in tweet else 0
+            if "id_str" not in alreadyExist:
+                tweets.replace_one({"_id" : alreadyExist["_id"]}, tweet)
+            else:
+                tweets.update_one(
+                    { "_id" : tweet["_id"] },
+                    {
+                        "$set" : {
+                            "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
+                            "favorite_count" : tweet["favorite_count"] if "favorite_count" in tweet else 0
+                        }
                     }
-                }
-            )
+                )
 
         tweet_text = ""
         if "extended_tweet" in tweet:
