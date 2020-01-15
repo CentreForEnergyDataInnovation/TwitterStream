@@ -1,5 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import time
 import pymongo
+import bson
 from pymongo.collation import Collation
 import pytz
 
@@ -31,29 +33,186 @@ users = twitter_db["users"]
 users_to_search = twitter_db["usersToSearch"]
 tweets_to_collect = twitter_db["tweetsToCollect"]
 tweet_tree = twitter_db["tweetTree"]
+poll_seed = twitter_db["pollSeed"]
+pollreply_seed = twitter_db["pollReplySeed"]
 
-"""
-for x in users_to_search.find().sort("_id", 1).collation(Collation(locale="en_US",numericOrdering=True)):
-    results = users_to_search.find({ "user_id_str" : x["user_id_str"] })
-    if results.count() > 1:
-        print(str(results.count()) + " - " + x["user_id_str"])
-"""
+tweets_staging = twitter_db["tweets_staging"]
 
-count = 0
+statusCheckNum = 0
+cyclecount = 0
 
-for x in users_to_search.find({ "created_at_dt" : { "$exists" : False } }):
-    count += 1
-    tweet = tweet_tree.find({ "_id" : x["_id"] })
-    users_to_search.update_one(
-        { "_id" : x["_id"] },
-        {
-            "$set" : {
-                "created_at" : tweet[0]["created_at"],
-                "created_at_dt" : tweet[0]["created_at_dt"],
+while True:
+
+    pollSeedCheck = pollreply_seed.find_one()
+    if pollSeedCheck == None:
+        pollreply_seed.insert_one({ "statusCheck" : str(statusCheckNum) })
+    else:
+        oldStatusCheckNum = int(pollSeedCheck["statusCheck"])
+        statusCheckNum = (oldStatusCheckNum + 1) % 5
+        pollreply_seed.replace_one({ "statusCheck" : str(oldStatusCheckNum)}, { "statusCheck" : str(statusCheckNum)})
+
+    while True:
+        toSearch = users_to_search.find_one({"reply_search_status": {"$nin": ["Expired", "Tracked", str(statusCheckNum)]}})
+        cyclecount += 1
+        if toSearch is None:
+            cyclecount = 0
+            print("cycle")
+            break
+
+        user_id_str = toSearch["user_id_str"]
+        screen_name = toSearch["screen_name"]
+
+        if trackers_users.find_one({"id_str" : user_id_str}) is not None:
+            print("Tracked: "+screen_name)
+            users_to_search.update_many(
+                { "user_id_str" : user_id_str },
+                {
+                    "$set" : {
+                        "reply_search_status" : "Tracked"
+                    }
+                }
+            )
+            continue
+
+        tweetIDs = []
+
+        for u in users_to_search.find({ "user_id_str" : toSearch["user_id_str"], "reply_search_status" : { "$ne" : "Expired" } }):
+            tweetIDs.append(u["_id"])
+            
+            a = pytz.utc.localize(u["created_at_dt"])
+            b = datetime.now(timezone.utc)
+            timediff = b - a
+
+            if timediff.days > 6:
+                users_to_search.update_one(
+                    { "_id" : u["_id"] },
+                    {
+                        "$set" : {
+                            "reply_search_status" : "Expired"
+                        }
+                    }
+                )
+        
+        users_to_search.update_many(
+            {
+                "user_id_str" : toSearch["user_id_str"],
+                "reply_search_status" : { "$ne" :"Expired" }
+            },
+            {
+                "$set" : {
+                    "reply_search_status" : str(statusCheckNum)
+                }
             }
-        }
-    )
-    if count % 100 == 0:
-        print(count)
+        )
 
-print("done")
+        minSnowflake = min(tweetIDs, key=bson.int64.Int64)
+
+        searching_term = "((from:"+screen_name+") OR (to:"+screen_name+") OR (@"+screen_name+")) -filter:retweets"
+
+        r = TwitterPager(api, "search/tweets", {
+            "q" : searching_term,
+            "count" : SEARCH_COUNT,
+            "since_id" : minSnowflake,
+            "result_type" : "recent",
+            "tweet_mode" : "extended"
+        })
+
+        tweet_count = 0
+        staging_count = 0
+
+        for item in r.get_iterator(wait = 2.1):
+            tweet_count += 1
+
+            tweet_id = item["id_str"]
+            reply_to = item["in_reply_to_status_id_str"]
+            quote_of = item["quoted_status_id_str"] if "quoted_status_id_str" in item else None
+
+            item["_id"] = tweet_id
+
+            if reply_to is None and quote_of is None:
+                print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - void " + tweet_id)
+                continue
+
+            if tweet_tree.find_one({ "_id" : tweet_id }) is not None:
+                print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - already captured " + tweet_id)
+                process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                continue
+
+            if reply_to is not None and quote_of is not None:
+                if tweet_tree.find_one({ "_id" : { "$in" : [reply_to, quote_of] } }) is None:
+                    print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - staging " + tweet_id)
+                    tweets_staging.insert_one(item)
+                    staging_count += 1
+                    continue
+                else:
+                    print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - capture reply/quote " + tweet_id)
+                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                    continue
+
+            if reply_to is not None:
+                if tweet_tree.find_one({ "_id" : reply_to }) is None:
+                    print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - staging " + tweet_id)
+                    tweets_staging.insert_one(item)
+                    staging_count += 1
+                    continue
+                else:
+                    print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - capture reply " + tweet_id)
+                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                    continue
+
+            if quote_of is not None:
+                if tweet_tree.find_one({ "_id" : quote_of }) is None:
+                    print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - staging " + tweet_id)
+                    tweets_staging.insert_one(item)
+                    staging_count += 1
+                    continue
+                else:
+                    print(str(cyclecount) + " - " + screen_name + " - " + str(tweet_count) + " - capture quote " + tweet_id)
+                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                    continue
+
+        print(screen_name + " - finished consumption of api - starting staging parse")
+
+        while True:
+
+            staging_count -= 1
+            staging_tweet = tweets_staging.find_one({}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+
+            if staging_tweet is None:
+                print(screen_name + " - finished staging parse")
+                break
+
+            tweet_id = staging_tweet["_id"]
+            reply_to = staging_tweet["in_reply_to_status_id_str"]
+            quote_of = staging_tweet["quoted_status_id_str"] if "quoted_status_id_str" in staging_tweet else None
+
+            tweets_staging.delete_one({ "_id" : staging_tweet["_id"] })
+
+            if reply_to is not None and quote_of is not None:
+                if tweet_tree.find_one({ "_id" : { "$in" : [reply_to, quote_of] } }) is None:
+                    print(str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
+                    continue
+                else:
+                    print(str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply/quote " + staging_tweet["_id"])
+                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                    continue
+
+            if reply_to is not None:
+                if tweet_tree.find_one({ "_id" : reply_to }) is None:
+                    print(str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
+                    continue
+                else:
+                    print(str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply " + staging_tweet["_id"])
+                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                    continue
+
+            if quote_of is not None:
+                if tweet_tree.find_one({ "_id" : quote_of }) is None:
+                    print(str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
+                    continue
+                else:
+                    print(str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"])
+                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                    continue
+
+        time.sleep(2.5)
