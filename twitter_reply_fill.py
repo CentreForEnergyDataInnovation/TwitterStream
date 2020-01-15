@@ -204,7 +204,7 @@ while True:
                         continue
                     else:
                         print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply/quote " + staging_tweet["_id"])
-                        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                        process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
 
                 if reply_to is not None:
@@ -213,7 +213,7 @@ while True:
                         continue
                     else:
                         print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply " + staging_tweet["_id"])
-                        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                        process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
 
                 if quote_of is not None:
@@ -222,7 +222,7 @@ while True:
                         continue
                     else:
                         print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"])
-                        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                        process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
 
             print(screen_name + " - finished staging parsing")
