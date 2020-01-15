@@ -52,25 +52,34 @@ while True:
             if item["id"][subitem] is not None:
                 process_tweet(item["id"][subitem], users, users_to_search, tweets, tweet_tree, tweets_to_collect)
             else:
-                if tweet_tree.find_one({"_id":subitem}) is not None:
-                    continue
-                tweet_tree.insert_one(
-                    {
-                        "_id" : subitem,
-                        "tweet_text" : "This Tweet is unavailable.",
-                        "user_id_str" : None,
-                        "in_reply_to_status_id_str" : None,
-                        "quoted_status_id_str" : None,
-                        "created_at" : None,
-                        "created_at_dt" : None,
-                        "entities" : None,
-                        "quote_count" : 0,
-                        "reply_count" : 0,
-                        "retweet_count" : 0,
-                        "favorite_count" : 0,
-                        "ancestors" : [],
-                        "scrape_status": "Root"
-                    }
-                )
+                if tweets.find({"_id":subitem,"id_str" : {"$exists" : False}}) is not None:
+                    tweets.update_one(
+                        {"_id":subitem},
+                        {
+                            "$set" : {
+                                "id_str" : subitem,
+                                "tweet_text" : "This Tweet is unavailable."
+                            }
+                        }
+                    )
+                if tweet_tree.find_one({"_id":subitem}) is None:
+                    tweet_tree.insert_one(
+                        {
+                            "_id" : subitem,
+                            "tweet_text" : "This Tweet is unavailable.",
+                            "user_id_str" : None,
+                            "in_reply_to_status_id_str" : None,
+                            "quoted_status_id_str" : None,
+                            "created_at" : None,
+                            "created_at_dt" : None,
+                            "entities" : None,
+                            "quote_count" : 0,
+                            "reply_count" : 0,
+                            "retweet_count" : 0,
+                            "favorite_count" : 0,
+                            "ancestors" : [],
+                            "scrape_status": "Root"
+                        }
+                    )
 
     time.sleep(5)
