@@ -188,45 +188,45 @@ while True:
 
         while True:
 
-            staging_count -= 1
-            staging_tweet = tweets_staging.find_one({}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+            
+            for staging_tweet in tweets_staging.find({}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True)):
+                staging_count -= 1
 
-            if staging_tweet is None:
-                print(screen_name + " - finished staging parse")
-                break
+                tweet_id = staging_tweet["_id"]
+                reply_to = staging_tweet["in_reply_to_status_id_str"]
+                quote_of = staging_tweet["quoted_status_id_str"] if "quoted_status_id_str" in staging_tweet else None
 
-            tweet_id = staging_tweet["_id"]
-            reply_to = staging_tweet["in_reply_to_status_id_str"]
-            quote_of = staging_tweet["quoted_status_id_str"] if "quoted_status_id_str" in staging_tweet else None
+                tweets_staging.delete_one({ "_id" : staging_tweet["_id"] })
 
-            tweets_staging.delete_one({ "_id" : staging_tweet["_id"] })
+                if reply_to is not None and quote_of is not None:
+                    if tweet_tree.find_one({ "_id" : { "$in" : [reply_to, quote_of] } }) is None:
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
+                        continue
+                    else:
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply/quote " + staging_tweet["_id"])
+                        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                        continue
 
-            if reply_to is not None and quote_of is not None:
-                if tweet_tree.find_one({ "_id" : { "$in" : [reply_to, quote_of] } }) is None:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
-                    continue
-                else:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply/quote " + staging_tweet["_id"])
-                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
-                    continue
+                if reply_to is not None:
+                    if tweet_tree.find_one({ "_id" : reply_to }) is None:
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
+                        continue
+                    else:
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply " + staging_tweet["_id"])
+                        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                        continue
 
-            if reply_to is not None:
-                if tweet_tree.find_one({ "_id" : reply_to }) is None:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
-                    continue
-                else:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture reply " + staging_tweet["_id"])
-                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
-                    continue
+                if quote_of is not None:
+                    if tweet_tree.find_one({ "_id" : quote_of }) is None:
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
+                        continue
+                    else:
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"])
+                        process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                        continue
 
-            if quote_of is not None:
-                if tweet_tree.find_one({ "_id" : quote_of }) is None:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"])
-                    continue
-                else:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"])
-                    process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
-                    continue
+            print(screen_name + " - finished staging parsing")
+            break
 
         if oldest is None:
             users_to_search.update_many(
