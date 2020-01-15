@@ -42,20 +42,22 @@ count = tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : {
 
 while count > 0:
 
-    count -= 1
+    
 
-    tweet = tweets.find_one({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } })
-    tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
-    tweets.update_one(
-        { "_id" : tweet["_id"] },
-        {
-            "$set" : {
-                "collect" : True
+    for tweet in tweets.find({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } }).limit(100):
+        count -= 1
+        tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
+        tweets.update_one(
+            { "_id" : tweet["_id"] },
+            {
+                "$set" : {
+                    "collect" : True
+                }
             }
-        }
-    )
+        )
+        print(count)
 
-    print(count)
+    
 
     if count == 0:
         count = tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } })
