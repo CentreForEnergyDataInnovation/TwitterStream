@@ -210,6 +210,7 @@ while True:
                         "scrape_status" : ""
                     }
                 }
+                continue
 
             hashtags = set()
             users = set()
