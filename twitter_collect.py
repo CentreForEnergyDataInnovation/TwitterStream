@@ -46,7 +46,7 @@ while True:
     tweetsToSearch = (",").join(tweetsToCollect)
     print("reply lookup: " +tweetsToSearch)
     r = api.request("statuses/lookup", { "id" : tweetsToSearch, "tweet_mode" : "extended", "map" : True})
-
+    start = time.time()
     for item in r:
         for subitem in item["id"]:
             if item["id"][subitem] is not None:
@@ -81,5 +81,7 @@ while True:
                             "scrape_status": "Root"
                         }
                     )
+    elapsed = time.time() - start
 
-    time.sleep(5)
+    pause = 3.2 - elapsed if elapsed < 3.2 else 0
+    time.sleep(pause)
