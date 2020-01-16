@@ -54,7 +54,7 @@ while True:
         if tweet_tree.count_documents({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }) == 0:
             break
 
-        for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }).sort([("_id",1)]).collation(Collation("en_US",numericOrdering=True)).limit(1000):
+        for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }).limit(1000):
             count += 1
             subcount = 0
             hashtags = set()
@@ -84,7 +84,7 @@ while True:
                     for x in quote["entities"]["user_mentions"]:
                         users.add(x["id_str"])
 
-            for sub in tweet_tree.find({"ancestors" : root["_id"]}).sort([("in_reply_to_status_id_str",1)]).collation(Collation("en_US", numericOrdering=True)):
+            for sub in tweet_tree.find({"ancestors" : root["_id"]}):
                 subcount += 1
 
                 tweet_ids.add(sub["_id"])
