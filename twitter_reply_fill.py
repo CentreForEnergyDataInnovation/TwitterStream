@@ -65,6 +65,8 @@ while True:
         screen_name = toSearch["screen_name"]
         created_at = toSearch["created_at"]
 
+        source_tweet_id = toSearch["_id"]
+
 
 
         if trackers_users.find_one({"id_str" : user_id_str}) is not None or screen_name == "realDonaldTrump":
@@ -148,44 +150,44 @@ while True:
             newcreated_at = item["created_at"]
 
             if reply_to is None and quote_of is None:
-                print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - void " + tweet_id + " - " + newcreated_at)
+                print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - void " + tweet_id + " - " + newcreated_at)
                 continue
 
             if tweet_tree.find_one({ "_id" : tweet_id }) is not None:
-                print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - already captured " + tweet_id + " - " + newcreated_at)
+                print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - already captured " + tweet_id + " - " + newcreated_at)
                 process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                 continue
 
             if reply_to is not None and quote_of is not None:
                 if tweet_tree.find_one({ "_id" : { "$in" : [reply_to, quote_of] } }) is None:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - staging " + tweet_id + " - " + newcreated_at)
+                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - staging " + tweet_id + " - " + newcreated_at)
                     tweets_staging.insert_one(item)
                     staging_count += 1
                     continue
                 else:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - capture reply/quote " + tweet_id + " - " + newcreated_at)
+                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - capture reply/quote " + tweet_id + " - " + newcreated_at)
                     process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                     continue
 
             if reply_to is not None:
                 if tweet_tree.find_one({ "_id" : reply_to }) is None:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - staging " + tweet_id + " - " + newcreated_at)
+                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - staging " + tweet_id + " - " + newcreated_at)
                     tweets_staging.insert_one(item)
                     staging_count += 1
                     continue
                 else:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - capture reply " + tweet_id + " - " + newcreated_at)
+                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - capture reply " + tweet_id + " - " + newcreated_at)
                     process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                     continue
 
             if quote_of is not None:
                 if tweet_tree.find_one({ "_id" : quote_of }) is None:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - staging " + tweet_id + " - " + newcreated_at)
+                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - staging " + tweet_id + " - " + newcreated_at)
                     tweets_staging.insert_one(item)
                     staging_count += 1
                     continue
                 else:
-                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - " + str(tweet_count) + " - capture quote " + tweet_id + " - " + newcreated_at)
+                    print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - " + str(tweet_count) + " - capture quote " + tweet_id + " - " + newcreated_at)
                     process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                     continue
 
@@ -197,7 +199,7 @@ while True:
             for staging_tweet in tweets_staging.find({}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True)).limit(1000):
                 staging_count -= 1
 
-                tweet_id = staging_tweet["_id"]
+                #tweet_id = staging_tweet["_id"]
                 reply_to = staging_tweet["in_reply_to_status_id_str"]
                 quote_of = staging_tweet["quoted_status_id_str"] if "quoted_status_id_str" in staging_tweet else None
 
@@ -207,28 +209,28 @@ while True:
 
                 if reply_to is not None and quote_of is not None:
                     if tweet_tree.find_one({ "_id" : { "$in" : [reply_to, quote_of] } }) is None:
-                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"] + " - " + newcreated_at)
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"] + " - " + newcreated_at)
                         continue
                     else:
-                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - staging - " + str(staging_count) + " - capture reply/quote " + staging_tweet["_id"] + " - " + newcreated_at)
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - staging - " + str(staging_count) + " - capture reply/quote " + staging_tweet["_id"] + " - " + newcreated_at)
                         process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
 
                 if reply_to is not None:
                     if tweet_tree.find_one({ "_id" : reply_to }) is None:
-                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"] + " - " + newcreated_at)
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"] + " - " + newcreated_at)
                         continue
                     else:
-                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - staging - " + str(staging_count) + " - capture reply " + staging_tweet["_id"] + " - " + newcreated_at)
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - staging - " + str(staging_count) + " - capture reply " + staging_tweet["_id"] + " - " + newcreated_at)
                         process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
 
                 if quote_of is not None:
                     if tweet_tree.find_one({ "_id" : quote_of }) is None:
-                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"] + " - " + newcreated_at)
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - staging - " + str(staging_count) + " - void " + staging_tweet["_id"] + " - " + newcreated_at)
                         continue
                     else:
-                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " - " + created_at + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"] + " - " + newcreated_at)
+                        print(str(sCount)+"("+str(tCount)+")" + " " + str(cyclecount) + " - " + screen_name + " | " + source_tweet_id + " - " + created_at + " - staging - " + str(staging_count) + " - capture quote " + staging_tweet["_id"] + " - " + newcreated_at)
                         process_tweet(staging_tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
                         continue
 
