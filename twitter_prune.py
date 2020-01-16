@@ -241,11 +241,12 @@ while True:
             for sub in tweet_tree.find({"ancestors" : alpha["_id"]}):
                 tweet_ids.add(sub["_id"])
 
-                for x in sub["entities"]["hashtags"]:
-                    hashtags.add(x["text"].lower())
+                if sub["entities"] is not None:
+                    for x in sub["entities"]["hashtags"]:
+                        hashtags.add(x["text"].lower())
 
-                for x in sub["entities"]["user_mentions"]:
-                    users.add(x["id_str"])
+                    for x in sub["entities"]["user_mentions"]:
+                        users.add(x["id_str"])
 
                 if "quoted_status_id_str" in sub:
                     quote = tweet_tree.find_one({"_id":sub["quoted_status_id_str"]})
