@@ -123,7 +123,7 @@ while True:
                     print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_hashtags & hashtags) + " " + str(valid_users & users))
                 elif len(valid_hashtags & hashtags) > 0:
                     print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_hashtags & hashtags))
-                elif len(valid_users & hashtags) > 0:
+                elif len(valid_users & users) > 0:
                     print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_users & users))
 
                 tweet_tree.update_many(
