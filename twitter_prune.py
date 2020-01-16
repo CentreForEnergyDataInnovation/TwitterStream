@@ -30,7 +30,7 @@ tweets_staging = twitter_db["tweets_staging"]
 
 while True:
 
-    for root in tweet_tree({ "scrape_status" : "Root" }).sort({"_id":1}):
+    for root in tweet_tree.find({ "scrape_status" : "Root" }).sort({"_id":1}):
         print(root["_id"])
 
     break
