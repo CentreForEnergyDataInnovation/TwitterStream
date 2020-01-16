@@ -84,7 +84,7 @@ while True:
                     for x in quote["entities"]["user_mentions"]:
                         users.add(x["id_str"])
 
-            for sub in tweet_tree.find({"ancestors" : root["_id"]}).sort([("in_reply_to_status_id_str",1)]):
+            for sub in tweet_tree.find({"ancestors" : root["_id"]}).sort([("in_reply_to_status_id_str",1)]).collation(Collation("en_US", numericOrdering=True)):
                 subcount += 1
 
                 tweet_ids.add(sub["_id"])
