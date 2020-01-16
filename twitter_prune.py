@@ -41,6 +41,8 @@ for x in trackers_users.find({ "id_str" : { "$exists" : True } }):
 
 while True:
 
+    time.sleep(5)
+
     count = 0
     subcount = 0
     valid_count = 0
