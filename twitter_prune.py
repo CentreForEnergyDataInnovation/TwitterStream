@@ -190,7 +190,7 @@ while True:
         if tweet_tree.count_documents({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }) == 0:
             break
 
-        for linked in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }).sort([("_id",1)]).collation(Collation("en_US",numericOrdering=True)).limit(1000):
+        for linked in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }).limit(1000):
 
             ancestors = linked["ancestors"]
 
@@ -227,7 +227,7 @@ while True:
                     for x in quote["entities"]["user_mentions"]:
                         users.add(x["id_str"])
 
-            for sub in tweet_tree.find({"ancestors" : alpha["_id"]}).sort([("in_reply_to_status_id_str",1)]):
+            for sub in tweet_tree.find({"ancestors" : alpha["_id"]}):
                 tweet_ids.add(sub["_id"])
 
                 for x in sub["entities"]["hashtags"]:
