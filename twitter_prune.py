@@ -33,7 +33,12 @@ tweets_staging = twitter_db["tweets_staging"]
 while True:
 
     for root in tweet_tree.find({ "scrape_status" : "Root" }).sort([("_id",1)]).collation(Collation("en_US",numericOrdering=True)).limit(1000):
-        print(root["_id"])
-        print(root["hashtagsInTree"])
+        if tweet_tree.count_documents({"ancestors" : root["_id"]}) > 1000:
+            print(tweet_tree.count_documents({"ancestors" : root["_id"]}))
+        for sub in tweet_tree.find({"ancestors" : root["_id"]}).sort([("in_reply_to_status_id_str",1)]):
+            c = 1
+
+        #print(root["_id"])
+        #print(root["hashtagsInTree"])
 
     break
