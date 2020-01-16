@@ -65,7 +65,9 @@ while True:
         screen_name = toSearch["screen_name"]
         created_at = toSearch["created_at"]
 
-        if trackers_users.find_one({"id_str" : user_id_str}) is not None:
+
+
+        if trackers_users.find_one({"id_str" : user_id_str}) is not None or screen_name == "realDonaldTrump":
             print("Tracked: "+screen_name)
             users_to_search.update_many(
                 { "user_id_str" : user_id_str },
