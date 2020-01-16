@@ -44,7 +44,7 @@ while count > 0:
 
     
 
-    for tweet in tweets.find({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } }).limit(100):
+    for tweet in tweets.find({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } }).limit(1000):
         count -= 1
         tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
         tweets.update_one(
@@ -68,7 +68,7 @@ count = tweets.count_documents({ "truncated" : True, "collect" : { "$ne" : True 
 
 while count > 0:
 
-    for tweet in tweets.find({ "truncated" : True, "collect" : { "$ne" : True } }).limit(100):
+    for tweet in tweets.find({ "truncated" : True, "collect" : { "$ne" : True } }).limit(1000):
         count -= 1
         tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
         tweets.update_one(
