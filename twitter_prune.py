@@ -203,6 +203,14 @@ while True:
                 }
             )
 
+            if alpha is None:
+                { "_id" : linked["_id"] },
+                {
+                    "$unset" : {
+                        "scrape_status" : ""
+                    }
+                }
+
             hashtags = set()
             users = set()
 
