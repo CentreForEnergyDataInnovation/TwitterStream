@@ -50,7 +50,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
         if alreadyExist is None:
             tweets.insert_one(tweet)
         else:
-            if "id_str" not in alreadyExist:
+            if "collect" in alreadyExist:
                 tweets.replace_one({"_id" : alreadyExist["_id"]}, tweet)
             else:
                 tweets.update_one(
@@ -100,6 +100,9 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
                         "reply_count" : tweet["reply_count"] if "reply_count" in tweet else 0,
                         "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
                         "favorite_count" : tweet["favorite_count"] if "favorite_count" in tweet else 0,
+                    },
+                    "$unset" : {
+                        "cleanCheck" : ""
                     }
                 }
             )

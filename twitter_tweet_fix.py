@@ -63,3 +63,27 @@ while count > 0:
         count = tweets.count_documents({ "id_str" : { "$exists" : False }, "collect" : { "$ne" : True } })
 
 print("done")
+
+count = tweets.count_documents({ "truncated" : True, "collect" : { "$ne" : True } })
+
+while count > 0:
+
+    for tweet in tweets.find({ "truncated" : True, "collect" : { "$ne" : True } }).limit(100):
+        count -= 1
+        tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
+        tweets.update_one(
+            { "_id" : tweet["_id"] },
+            {
+                "$set" : {
+                    "collect" : True
+                }
+            }
+        )
+        print(count)
+
+    
+
+    if count == 0:
+        count = tweets.count_documents({ "truncated" : True, "collect" : { "$ne" : True } })
+
+print("done")
