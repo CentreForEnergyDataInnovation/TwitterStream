@@ -34,5 +34,6 @@ while True:
 
     for root in tweet_tree.find({ "scrape_status" : "Root" }).sort([("_id",1)]).collation(Collation("en_US",numericOrdering=True)).limit(1000):
         print(root["_id"])
+        print(root["hashtagsInTree"])
 
     break
