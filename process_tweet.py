@@ -96,6 +96,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
                 { "_id" : tweet["_id"] },
                 {
                     "$set" : {
+                        "tweet_text" : tweet_text,
                         "quote_count" : tweet["quote_count"] if "quote_count" in tweet else 0,
                         "reply_count" : tweet["reply_count"] if "reply_count" in tweet else 0,
                         "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
