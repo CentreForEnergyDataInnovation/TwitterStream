@@ -52,8 +52,8 @@ while True:
         pollreply_seed.replace_one({ "statusCheck" : str(oldStatusCheckNum)}, { "statusCheck" : str(statusCheckNum)})
 
     while True:
-        sCount = users_to_search.count_documents({"reply_search_status": {"$nin": ["Expired", "Tracked", str(statusCheckNum)]}})
-        toSearch = users_to_search.find_one({"reply_search_status": {"$nin": ["Expired", "Tracked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
+        sCount = users_to_search.count_documents({"valid" : True, "reply_search_status": {"$nin": ["Expired", "Tracked", "Prune", str(statusCheckNum)]}})
+        toSearch = users_to_search.find_one({"valid" : True, "reply_search_status": {"$nin": ["Expired", "Tracked", "Prune", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
         cyclecount += 1
 
         if toSearch is None:
