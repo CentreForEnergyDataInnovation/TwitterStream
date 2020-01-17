@@ -189,7 +189,7 @@ while True:
 
     for linked in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" },sort=[("_id", -1)], collation = Collation(locale="en_US", numericOrdering=True)).limit(1000):
 
-        if linked["cleanCheck"] is not None:
+        if "cleanCheck" in linked:
             continue
 
         ancestors = linked["ancestors"]
