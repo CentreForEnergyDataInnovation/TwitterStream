@@ -39,6 +39,27 @@ valid_users = set()
 for x in trackers_users.find({ "id_str" : { "$exists" : True } }):
     valid_users.add(x["id_str"])
 
+
+while True:
+    count = 0
+    valid_count = 0
+    invalid_count = 0
+
+    for tweet in tweet_tree.find(
+        {
+            "$or" : [
+                { "cleanCheck" : { "$exists" : False } },
+                { "my_hashtags" : { "$exists" : False } }
+            ],
+            "scrape_status" : { "$in" : ["Root", "Linked"] }
+        }
+    ).sort("_id", 1).collation(Collation("en_US",numericOrdering=True)).limit(1000):
+        print(tweet["_id"])
+
+
+
+"""
+
 while True:
 
     time.sleep(5)
@@ -201,12 +222,14 @@ while True:
         minSnowflake = min(ancestors, key=bson.int64.Int64)
 
         """
+        """
         alpha = tweet_tree.find_one(
             {
                 "_id" : { "$in" : ancestors },
                 "scrape_status" : "Root"
             }
         )
+        """
         """
         alpha = tweet_tree.find_one(
             {
@@ -343,3 +366,4 @@ while True:
                 }
             )
 
+"""
