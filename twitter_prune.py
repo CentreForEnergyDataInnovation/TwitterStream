@@ -39,11 +39,10 @@ valid_users = set()
 for x in trackers_users.find({ "id_str" : { "$exists" : True } }):
     valid_users.add(x["id_str"])
 
-
+count = 0
+valid_count = 0
+invalid_count = 0
 while True:
-    count = 0
-    valid_count = 0
-    invalid_count = 0
 
     for tweet in tweet_tree.find(
         {
@@ -54,7 +53,117 @@ while True:
             "scrape_status" : { "$in" : ["Root", "Linked"] }
         }
     ).sort("_id", 1).collation(Collation("en_US",numericOrdering=True)).limit(1000):
-        print(tweet["_id"])
+        tweet_id = tweet["_id"]
+        hashtags = set()
+        user_mentions = set()
+
+        count += 1
+
+        if tweet["user_id_str"] is not None:
+            user_mentions.add(tweet["user_id_str"])
+        if tweet["entities"] is not None:
+            for x in tweet["entities"]["hashtags"]:
+                hashtags.add(x["text"].lower())
+            for x in tweet["entities"]["user_mentions"]:
+                user_mentions.add(x["id_str"])
+
+        if "quoted_status_id_str" in tweet:
+            quote = tweet_tree.find_one({"_id":tweet["quoted_status_id_str"]})
+            if quote is not None and quote["user_id_str"] is not None:
+                user_mentions.add(quote["user_id_str"])            
+            if quote is not None and quote["entities"] is not None:
+                for x in quote["entities"]["hashtags"]:
+                    hashtags.add(x["text"].lower())
+                for x in quote["entities"]["user_mentions"]:
+                    user_mentions.add(x["id_str"])
+
+        if "ancestors" in tweet:
+            ancestors = tweet["ancestors"]
+        else:
+            ancestors = []
+        if len(ancestors) > 0:
+            tweet_tree.update_many(
+                { "_id" : { "$in" : ancestors } },
+                {
+                    "$addToSet" : {
+                        "hashtagsInChildren" : { "$each" : list(hashtags) },
+                        "usersInChildren" : { "$each" : list(user_mentions) }
+                    }
+                }
+            )
+
+        parent_valid = False
+        tweet_valid = False
+
+        if tweet["in_reply_to_status_id_str"] is not None:
+            parent = tweet_tree.find_one({ "_id" : tweet["in_reply_to_status_id_str"] })
+            if parent is not None:
+                if "cleanCheck" in parent:
+                    parent_valid = parent["cleanCheck"]
+
+        if parent_valid == True:
+            tweet_valid = True
+        else:
+            matching_hashtags = valid_hashtags & hashtags
+            matching_users = valid_users & user_mentions
+            
+            if (len(matching_hashtags) + len(matching_users)) > 0:
+                tweet_valid = True
+
+        if tweet_valid == True:
+            tweet_tree.update_one(
+                { "_id" : tweet_id },
+                {
+                    "$set" : {
+                        "cleanCheck" : True,
+                        "my_hashtags" : list(hashtags),
+                        "my_users" : list(user_mentions)
+                    }
+                }
+            )
+            users_to_search.update_one(
+                { "_id" : tweet_id },
+                {
+                    "$set" : {
+                        "valid" : True
+                    }
+                }
+            )
+            valid_count += 1
+
+            if parent_valid == True:
+                print("V - " + str(count) + " | " + str(valid_count) + " + " + str(invalid_count) + " | " + str(len(ancestors)) + " | " + tweet_id + " - " + "Parent")
+            elif len(matching_hashtags) > 0 and len(matching_users) > 0:
+                print("V - " + str(count) + " | " + str(valid_count) + " + " + str(invalid_count) + " | " + str(len(ancestors)) + " | " + tweet_id + " - " + str(matching_hashtags) + " " + str(matching_users))
+            elif len(matching_hashtags) > 0:
+                print("V - " + str(count) + " | " + str(valid_count) + " + " + str(invalid_count) + " | " + str(len(ancestors)) + " | " + tweet_id + " - " + str(matching_hashtags))
+            elif len(matching_users) > 0:
+                print("V - " + str(count) + " | " + str(valid_count) + " + " + str(invalid_count) + " | " + str(len(ancestors)) + " | " + tweet_id + " - " + str(matching_users))
+            else:
+                print("V - " + str(count) + " | " + str(valid_count) + " + " + str(invalid_count) + " | " + str(len(ancestors)) + " | " + tweet_id + " - " + "WTF")
+        else:
+            tweet_tree.update_one(
+                { "_id" : tweet_id },
+                {
+                    "$set" : {
+                        "cleanCheck" : False,
+                        "my_hashtags" : list(hashtags),
+                        "my_users" : list(user_mentions)
+                    }
+                }
+            )
+            users_to_search.update_one(
+                { "_id" : tweet_id },
+                {
+                    "$set" : {
+                        "valid" : False
+                    }
+                }
+            )
+            invalid_count += 1
+            print("I - " + str(count) + " | " + str(valid_count) + " + " + str(invalid_count) + " | " + str(len(ancestors)) + " | " + tweet_id + " - " + "Invalid")
+
+
 
 
 
