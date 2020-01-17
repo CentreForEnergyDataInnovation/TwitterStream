@@ -51,31 +51,53 @@ while True:
     invalid_root = 0
 
     print("Root Parse")
-    while True:
+    
 
-        for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }).limit(1000):
-            count += 1
-            subcount = 0
-            hashtags = set()
-            users = set()
+    for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }).limit(1000):
+        count += 1
+        subcount = 0
+        hashtags = set()
+        users = set()
 
-            tweet_ids = set()
+        tweet_ids = set()
 
-            tweet_ids.add(root["_id"])
-            subcount += 1
+        tweet_ids.add(root["_id"])
+        subcount += 1
 
-            if root["entities"] is not None:
-                for x in root["entities"]["hashtags"]:
+        if root["entities"] is not None:
+            for x in root["entities"]["hashtags"]:
+                hashtags.add(x["text"].lower())
+
+            for x in root["entities"]["user_mentions"]:
+                users.add(x["id_str"])
+                
+            
+            
+        if "quoted_status_id_str" in root:
+            quote = tweet_tree.find_one({"_id":root["quoted_status_id_str"]})
+
+            if quote is not None and quote["entities"] is not None:
+                for x in quote["entities"]["hashtags"]:
                     hashtags.add(x["text"].lower())
 
-                for x in root["entities"]["user_mentions"]:
+                for x in quote["entities"]["user_mentions"]:
                     users.add(x["id_str"])
-                    
-                
-                
-            if "quoted_status_id_str" in root:
-                quote = tweet_tree.find_one({"_id":root["quoted_status_id_str"]})
 
+        for sub in tweet_tree.find({"ancestors" : root["_id"]}):
+            subcount += 1
+
+            tweet_ids.add(sub["_id"])
+
+            if sub["entities"] is not None:
+                for x in sub["entities"]["hashtags"]:
+                    hashtags.add(x["text"].lower())
+
+                for x in sub["entities"]["user_mentions"]:
+                    users.add(x["id_str"])
+
+            if "quoted_status_id_str" in sub:
+                quote = tweet_tree.find_one({"_id":sub["quoted_status_id_str"]})
+                
                 if quote is not None and quote["entities"] is not None:
                     for x in quote["entities"]["hashtags"]:
                         hashtags.add(x["text"].lower())
@@ -83,159 +105,157 @@ while True:
                     for x in quote["entities"]["user_mentions"]:
                         users.add(x["id_str"])
 
-            for sub in tweet_tree.find({"ancestors" : root["_id"]}):
-                subcount += 1
+        tweet_tree.update_one(
+            { "_id" : root["_id"] },
+            {
+                "$set" : {
+                    "hashtagsInTree" : list(hashtags),
+                    "usersInTree" : list(users)
+                }
+            }
+        )
 
-                tweet_ids.add(sub["_id"])
+        if (len(valid_hashtags & hashtags) + len(valid_users & users)) > 0:
+            valid_count += subcount
+            valid_root += 1
 
-                if sub["entities"] is not None:
-                    for x in sub["entities"]["hashtags"]:
-                        hashtags.add(x["text"].lower())
+            if len(valid_hashtags & hashtags) > 0 and len(valid_users & users) > 0:
+                print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_hashtags & hashtags) + " " + str(valid_users & users))
+            elif len(valid_hashtags & hashtags) > 0:
+                print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_hashtags & hashtags))
+            elif len(valid_users & users) > 0:
+                print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_users & users))
 
-                    for x in sub["entities"]["user_mentions"]:
-                        users.add(x["id_str"])
-
-                if "quoted_status_id_str" in sub:
-                    quote = tweet_tree.find_one({"_id":sub["quoted_status_id_str"]})
-                    
-                    if quote is not None and quote["entities"] is not None:
-                        for x in quote["entities"]["hashtags"]:
-                            hashtags.add(x["text"].lower())
-
-                        for x in quote["entities"]["user_mentions"]:
-                            users.add(x["id_str"])
-
-            tweet_tree.update_one(
-                { "_id" : root["_id"] },
+            tweet_tree.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
                 {
                     "$set" : {
-                        "hashtagsInTree" : list(hashtags),
-                        "usersInTree" : list(users)
+                        "cleanCheck" : True
                     }
                 }
             )
 
-            if (len(valid_hashtags & hashtags) + len(valid_users & users)) > 0:
-                valid_count += subcount
-                valid_root += 1
-
-                if len(valid_hashtags & hashtags) > 0 and len(valid_users & users) > 0:
-                    print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_hashtags & hashtags) + " " + str(valid_users & users))
-                elif len(valid_hashtags & hashtags) > 0:
-                    print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_hashtags & hashtags))
-                elif len(valid_users & users) > 0:
-                    print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " V (" +str(subcount) + ") - " + root["_id"] + " " + str(valid_users & users))
-
-                tweet_tree.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "cleanCheck" : True
-                        }
+            users_to_search.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
+                {
+                    "$set" : {
+                        "valid" : True
                     }
-                )
+                }
+            )
 
-                users_to_search.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "valid" : True
-                        }
+        else:
+            invalid_count += subcount
+            invalid_root += 1
+
+            print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " I (" +str(subcount) + ") - " + root["_id"])
+
+            tweet_tree.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
+                {
+                    "$set" : {
+                        "cleanCheck" : False
                     }
-                )
-
-            else:
-                invalid_count += subcount
-                invalid_root += 1
-
-                print(str(count) + " | " + str(valid_root) + " | " + str(valid_count) + " | " + str(invalid_root) + " | " + str(invalid_count) + " I (" +str(subcount) + ") - " + root["_id"])
-
-                tweet_tree.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "cleanCheck" : False
-                        }
+                }
+            )
+            users_to_search.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
+                {
+                    "$set" : {
+                        "valid" : False
                     }
-                )
-                users_to_search.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "valid" : False
-                        }
-                    }
-                )
+                }
+            )
     
 
     print("Linked Parse")
-    while True:
+    
 
-        for linked in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }).limit(1000):
+    for linked in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }).limit(1000):
 
-            ancestors = linked["ancestors"]
+        ancestors = linked["ancestors"]
 
-            minSnowflake = min(ancestors, key=bson.int64.Int64)
+        minSnowflake = min(ancestors, key=bson.int64.Int64)
 
-            """
-            alpha = tweet_tree.find_one(
-                {
-                    "_id" : { "$in" : ancestors },
-                    "scrape_status" : "Root"
+        """
+        alpha = tweet_tree.find_one(
+            {
+                "_id" : { "$in" : ancestors },
+                "scrape_status" : "Root"
+            }
+        )
+        """
+        alpha = tweet_tree.find_one(
+            {
+                "_id" : minSnowflake,
+                "scrape_status" : "Root"
+            }
+        )
+
+        if alpha is None:
+            { "_id" : linked["_id"] },
+            {
+                "$unset" : {
+                    "scrape_status" : ""
                 }
-            )
-            """
-            alpha = tweet_tree.find_one(
-                {
-                    "_id" : minSnowflake,
-                    "scrape_status" : "Root"
-                }
-            )
+            }
+            continue
 
-            if alpha is None:
-                { "_id" : linked["_id"] },
-                {
-                    "$unset" : {
-                        "scrape_status" : ""
-                    }
-                }
-                continue
+        hashtags = set()
+        users = set()
 
-            hashtags = set()
-            users = set()
+        tweet_ids = set()
 
-            tweet_ids = set()
+        tweet_ids.add(alpha["_id"])
 
-            tweet_ids.add(alpha["_id"])
+        if alpha["entities"] is not None:
+            for x in alpha["entities"]["hashtags"]:
+                hashtags.add(x["text"].lower())
 
-            if alpha["entities"] is not None:
-                for x in alpha["entities"]["hashtags"]:
+            for x in alpha["entities"]["user_mentions"]:
+                users.add(x["id_str"])
+                
+            
+            
+        if "quoted_status_id_str" in alpha:
+            quote = tweet_tree.find_one({"_id":alpha["quoted_status_id_str"]})
+
+            if quote is not None and quote["entities"] is not None:
+                for x in quote["entities"]["hashtags"]:
                     hashtags.add(x["text"].lower())
 
-                for x in alpha["entities"]["user_mentions"]:
+                for x in quote["entities"]["user_mentions"]:
                     users.add(x["id_str"])
-                    
-                
-                
-            if "quoted_status_id_str" in alpha:
-                quote = tweet_tree.find_one({"_id":alpha["quoted_status_id_str"]})
 
+        for sub in tweet_tree.find({"ancestors" : alpha["_id"]}):
+            tweet_ids.add(sub["_id"])
+
+            if sub["entities"] is not None:
+                for x in sub["entities"]["hashtags"]:
+                    hashtags.add(x["text"].lower())
+
+                for x in sub["entities"]["user_mentions"]:
+                    users.add(x["id_str"])
+
+            if "quoted_status_id_str" in sub:
+                quote = tweet_tree.find_one({"_id":sub["quoted_status_id_str"]})
+                
                 if quote is not None and quote["entities"] is not None:
                     for x in quote["entities"]["hashtags"]:
                         hashtags.add(x["text"].lower())
@@ -243,96 +263,76 @@ while True:
                     for x in quote["entities"]["user_mentions"]:
                         users.add(x["id_str"])
 
-            for sub in tweet_tree.find({"ancestors" : alpha["_id"]}):
-                tweet_ids.add(sub["_id"])
+        tweet_tree.update_one(
+            { "_id" : alpha["_id"] },
+            {
+                "$set" : {
+                    "hashtagsInTree" : list(hashtags),
+                    "usersInTree" : list(users)
+                }
+            }
+        )
 
-                if sub["entities"] is not None:
-                    for x in sub["entities"]["hashtags"]:
-                        hashtags.add(x["text"].lower())
+        if (len(valid_hashtags & hashtags) + len(valid_users & users)) > 0:
+            if len(valid_hashtags & hashtags) > 0 and len(valid_users & users) > 0:
+                print(linked["_id"] + " " + str(valid_hashtags & hashtags) + " " + str(valid_users & users))
+            elif len(valid_hashtags & hashtags) > 0:
+                print(linked["_id"] + " " + str(valid_hashtags & hashtags))
+            elif len(valid_users & hashtags) > 0:
+                print(linked["_id"] + " " + str(valid_users & users))
 
-                    for x in sub["entities"]["user_mentions"]:
-                        users.add(x["id_str"])
-
-                if "quoted_status_id_str" in sub:
-                    quote = tweet_tree.find_one({"_id":sub["quoted_status_id_str"]})
-                    
-                    if quote is not None and quote["entities"] is not None:
-                        for x in quote["entities"]["hashtags"]:
-                            hashtags.add(x["text"].lower())
-
-                        for x in quote["entities"]["user_mentions"]:
-                            users.add(x["id_str"])
-
-            tweet_tree.update_one(
-                { "_id" : alpha["_id"] },
+            tweet_tree.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
                 {
                     "$set" : {
-                        "hashtagsInTree" : list(hashtags),
-                        "usersInTree" : list(users)
+                        "cleanCheck" : True
                     }
                 }
             )
 
-            if (len(valid_hashtags & hashtags) + len(valid_users & users)) > 0:
-                if len(valid_hashtags & hashtags) > 0 and len(valid_users & users) > 0:
-                    print(linked["_id"] + " " + str(valid_hashtags & hashtags) + " " + str(valid_users & users))
-                elif len(valid_hashtags & hashtags) > 0:
-                    print(linked["_id"] + " " + str(valid_hashtags & hashtags))
-                elif len(valid_users & hashtags) > 0:
-                    print(linked["_id"] + " " + str(valid_users & users))
-
-                tweet_tree.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "cleanCheck" : True
-                        }
+            users_to_search.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
+                {
+                    "$set" : {
+                        "valid" : True
                     }
-                )
+                }
+            )
 
-                users_to_search.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "valid" : True
-                        }
+        else:
+
+            print(linked["_id"])
+
+            tweet_tree.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
+                {
+                    "$set" : {
+                        "cleanCheck" : False
                     }
-                )
-
-            else:
-
-                print(linked["_id"])
-
-                tweet_tree.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "cleanCheck" : False
-                        }
+                }
+            )
+            users_to_search.update_many(
+                { 
+                    "_id" : {
+                        "$in" : list(tweet_ids) 
+                    } 
+                },
+                {
+                    "$set" : {
+                        "valid" : False
                     }
-                )
-                users_to_search.update_many(
-                    { 
-                        "_id" : {
-                            "$in" : list(tweet_ids) 
-                        } 
-                    },
-                    {
-                        "$set" : {
-                            "valid" : False
-                        }
-                    }
-                )
+                }
+            )
 
