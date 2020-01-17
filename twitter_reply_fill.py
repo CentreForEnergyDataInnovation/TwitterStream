@@ -281,4 +281,4 @@ while True:
                     }
                 }
             )
-        time.sleep(2.5)
+        time.sleep(2)
