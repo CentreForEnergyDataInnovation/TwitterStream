@@ -4,6 +4,9 @@ import pytz
 
 def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect):
 
+    if tweet["truncated"] == True:
+        tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
+
     retweet = False
     quote = False
 
@@ -92,21 +95,39 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
             #print("Insert Tree Node")
         else:
             #print("Update Tree Node")
-            tweet_tree.update_one(
-                { "_id" : tweet["_id"] },
-                {
-                    "$set" : {
-                        "tweet_text" : tweet_text,
-                        "quote_count" : tweet["quote_count"] if "quote_count" in tweet else 0,
-                        "reply_count" : tweet["reply_count"] if "reply_count" in tweet else 0,
-                        "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
-                        "favorite_count" : tweet["favorite_count"] if "favorite_count" in tweet else 0,
-                    },
-                    "$unset" : {
-                        "cleanCheck" : ""
+
+            if alreadyExist is not None and alreadyExist["truncated"] == True:
+                tweet_tree.update_one(
+                    { "_id" : tweet["_id"] },
+                    {
+                        "$set" : {
+                            "tweet_text" : tweet_text,
+                            "quote_count" : tweet["quote_count"] if "quote_count" in tweet else 0,
+                            "reply_count" : tweet["reply_count"] if "reply_count" in tweet else 0,
+                            "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
+                            "favorite_count" : tweet["favorite_count"] if "favorite_count" in tweet else 0,
+                        }, 
+                        "$unset" : {
+                            "cleanCheck" : ""
+                        }
                     }
-                }
-            )
+                )
+            else:
+                tweet_tree.update_one(
+                    { "_id" : tweet["_id"] },
+                    {
+                        "$set" : {
+                            "tweet_text" : tweet_text,
+                            "quote_count" : tweet["quote_count"] if "quote_count" in tweet else 0,
+                            "reply_count" : tweet["reply_count"] if "reply_count" in tweet else 0,
+                            "retweet_count" : tweet["retweet_count"] if "retweet_count" in tweet else 0,
+                            "favorite_count" : tweet["favorite_count"] if "favorite_count" in tweet else 0,
+                        }
+                    }
+                )
+
+
+            
 
         if tweet["in_reply_to_status_id_str"] is not None:
             parent = tweet_tree.find_one({ "_id" : tweet["in_reply_to_status_id_str"] })
