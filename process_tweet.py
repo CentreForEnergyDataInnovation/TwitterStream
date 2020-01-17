@@ -96,7 +96,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
         else:
             #print("Update Tree Node")
 
-            if alreadyExist is not None and alreadyExist["truncated"] == True:
+            if alreadyExist is not None and "truncated" in alreadyExist and alreadyExist["truncated"] == True:
                 tweet_tree.update_one(
                     { "_id" : tweet["_id"] },
                     {
