@@ -4,9 +4,6 @@ import pytz
 
 def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_collect):
 
-    if tweet["truncated"] == True:
-        tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
-
     retweet = False
     quote = False
 
@@ -27,6 +24,9 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
     except:
         print(tweet)
         raise
+
+    if tweet["truncated"] == True:
+        tweets_to_collect.replace_one({"_id": tweet["id_str"]}, {"_id": tweet["id_str"]}, True)
     
     tweet["user"]["_id"] = tweet["user"]["id_str"]
     
