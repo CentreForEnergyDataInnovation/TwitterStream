@@ -242,19 +242,19 @@ while True:
 
         expireDate = datetime.now(timezone.utc) - timedelta(days=7)
 
-        print(
-            users_to_search.update_many(
-                {
-                    "user_id_str" : toSearch["user_id_str"],
-                    "created_at_dt" : { "$lt" : expireDate }
-                },
-                {
-                    "$set" : {
-                        "reply_search_status" : "Expired"
-                    }
+        retval = users_to_search.update_many(
+            {
+                "user_id_str" : toSearch["user_id_str"],
+                "created_at_dt" : { "$lt" : expireDate }
+            },
+            {
+                "$set" : {
+                    "reply_search_status" : "Expired"
                 }
-            )
+            }
         )
+
+        print(str(retval.matched_count) + " : " + str(retval.modified_count))
 
         if oldest is None:
             users_to_search.update_many(
