@@ -53,7 +53,7 @@ while True:
     print("Root Parse")
     
 
-    for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }).limit(1000):
+    for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" },sort=[("_id", -1)], collation = Collation(locale="en_US", numericOrdering=True)).limit(1000):
         count += 1
         subcount = 0
         hashtags = set()
@@ -63,6 +63,9 @@ while True:
 
         tweet_ids.add(root["_id"])
         subcount += 1
+
+        if root["cleanCheck"] is not None:
+            continue
 
         if root["entities"] is not None:
             for x in root["entities"]["hashtags"]:
