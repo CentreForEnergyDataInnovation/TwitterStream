@@ -53,9 +53,6 @@ while True:
     print("Root Parse")
     while True:
 
-        if tweet_tree.count_documents({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }) == 0:
-            break
-
         for root in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Root" }).limit(1000):
             count += 1
             subcount = 0
@@ -189,8 +186,6 @@ while True:
 
     print("Linked Parse")
     while True:
-        if tweet_tree.count_documents({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }) == 0:
-            break
 
         for linked in tweet_tree.find({"cleanCheck":{"$exists" : False}, "scrape_status" : "Linked" }).limit(1000):
 
