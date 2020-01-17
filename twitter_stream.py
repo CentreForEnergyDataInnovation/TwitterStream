@@ -84,6 +84,7 @@ while True:
         if "stop" not in item:
             if "id_str" in item:
                 process_tweet(item, users, users_to_search, tweets, tweet_tree, tweets_to_collect)
+                print(item["id_str"])
             else:
                 exceptions.insert_one(item)
 
