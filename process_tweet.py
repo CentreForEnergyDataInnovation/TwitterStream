@@ -27,6 +27,7 @@ def process_tweet(tweet, users, users_to_search, tweets, tweet_tree, tweets_to_c
 
     if tweet["truncated"] == True:
         tweets_to_collect.replace_one({"_id": tweet["id_str"]}, {"_id": tweet["id_str"]}, True)
+        return
     
     tweet["user"]["_id"] = tweet["user"]["id_str"]
     
