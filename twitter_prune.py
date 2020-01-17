@@ -221,16 +221,16 @@ while True:
 
         minSnowflake = min(ancestors, key=bson.int64.Int64)
 
-        """
-        """
+"""
+"""
         alpha = tweet_tree.find_one(
             {
                 "_id" : { "$in" : ancestors },
                 "scrape_status" : "Root"
             }
         )
-        """
-        """
+"""
+"""
         alpha = tweet_tree.find_one(
             {
                 "_id" : minSnowflake,
