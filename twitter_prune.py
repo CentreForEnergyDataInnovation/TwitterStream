@@ -85,12 +85,12 @@ while True:
                 for x in quote["entities"]["user_mentions"]:
                     user_mentions.add(x["id_str"])
             if quote is None:
-                print("quote tree null - " + {"_id":tweet["quoted_status_id_str"]})
+                print("quote tree null - " + tweet["quoted_status_id_str"])
                 continue
 
             quote_tweet = tweets.find_one({ "_id" : tweet["quoted_status_id_str"] })
             if quote is None:
-                quote_tweet("quote tweet null - " + {"_id":tweet["quoted_status_id_str"]})
+                quote_tweet("quote tweet null - " + tweet["quoted_status_id_str"])
                 continue
             if quote_tweet is not None:
                 if "extended_tweet" in quote_tweet:
