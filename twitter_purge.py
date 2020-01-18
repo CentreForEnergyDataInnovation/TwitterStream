@@ -47,6 +47,26 @@ statusCheckNum = 0
 
 while True:
 
+    tweet_check = offload_tree.find_one({})
+    if tweet_check is None:
+        break
+
+    for tweet in offload_tree.find({}).limit(1000):
+        print("tree " + tweet["_id"])
+        tweets_to_collect.replace_one({"_id": tweet["_id"]}, {"_id": tweet["_id"]}, True)
+        offload_tree.delete_one({"_id": tweet["_id"]})
+
+while True:
+
+    tweet_check = offload_tweets.find_one({})
+    if tweet_check is None:
+        break
+
+    for tweet in offload_tweets.find({}).limit(1000):
+        print("tweets " + tweet["_id"])
+        offload_tweets.delete_one({"_id": tweet["_id"]})
+
+"""
     purgeCheck = purge_seed.find_one()
     if purgeCheck == None:
         purge_seed.insert_one({"statusCheck": str(statusCheckNum)})
@@ -167,6 +187,48 @@ while True:
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "parent " + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
                 else:
+                    if "quoted_status_id_str" in tweet and tweet["quoted_status_id_str"] is not None:
+                        quote_tweet = tweet_tree.find_one({"_id" : tweet["quoted_status_id_str"]})
+                        if quote_tweet is None:
+                            tweet_tree.update_one(
+                                { "_id" : tweet_id },
+                                {
+                                    "$set" : {
+                                        "purgeLoop" : str(statusCheckNum)
+                                    }
+                                }
+                            )
+                            continue
+                        else:
+                            if "my_hashtags" in quote_tweet:
+                                quote_hashtags = quote_tweet["my_hashtags"]
+                                quote_users = quote_tweet["my_users"]
+
+                                matching_hashtags = valid_hashtags & hashtags_in_children
+                                matching_users = valid_users & users_in_children
+
+                                if (len(matching_hashtags) + len(matching_users)) > 0:
+                                    tweet_tree.update_one(
+                                        { "_id" : tweet_id },
+                                        {
+                                            "$unset" : {
+                                                "cleanCheck" : ""
+                                            }
+                                        }
+                                    )
+                                    continue
+                            else:
+                                tweet_tree.update_one(
+                                    { "_id" : tweet_id },
+                                    {
+                                        "$set" : {
+                                            "purgeLoop" : str(statusCheckNum)
+                                        }
+                                    }
+                                )
+                                continue
+
+
                     offload_count += 1
                     offloading_tweet = tweets.find_one({ "_id" : tweet_id })
                     offloading_node = tweet_tree.find_one({ "_id" : tweet_id })
@@ -196,3 +258,4 @@ while True:
 
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "offload" + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
+"""
