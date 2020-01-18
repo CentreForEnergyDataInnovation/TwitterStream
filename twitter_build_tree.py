@@ -192,7 +192,7 @@ while True:
                             childTweet = tweetCheck
                             while parentTweet is not None:
                                 ancest = parentTweet["ancestors"]
-                                tweetCheck.update_one(
+                                tweet_tree.update_one(
                                     { "_id" : childTweet["_id"] },
                                     {
                                         "$addToSet" : {
