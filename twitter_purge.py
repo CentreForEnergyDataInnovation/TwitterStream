@@ -200,6 +200,8 @@ while True:
                                     }
                                 }
                             )
+                            tweets_to_collect.replace_one({"_id": tweet["quoted_status_id_str"]}, {"_id": tweet["quoted_status_id_str"]}, True)
+                            print("quote not loaded")
                             continue
                         else:
                             if "my_hashtags" in quote_tweet:
@@ -218,17 +220,19 @@ while True:
                                             }
                                         }
                                     )
+                                    print(tweet_id + " quote not included in tree info")
                                     continue
                                 
                             else:
                                 tweet_tree.update_one(
                                     { "_id" : tweet_id },
                                     {
-                                        "$set" : {
-                                            "purgeLoop" : str(statusCheckNum)
+                                        "$unset" : {
+                                            "cleanCheck" : ""
                                         }
                                     }
                                 )
+                                print(tweet_id + " quote not included in tree info")
                                 continue
 
 
