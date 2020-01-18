@@ -45,6 +45,7 @@ for x in trackers_users.find({ "id_str" : { "$exists" : True } }):
 
 statusCheckNum = 0
 
+"""
 while True:
 
     tweet_check = offload_tree.find_one({})
@@ -67,6 +68,7 @@ while True:
         offload_tweets.delete_one({"_id": tweet["_id"]})
 
 """
+while True:
     purgeCheck = purge_seed.find_one()
     if purgeCheck == None:
         purge_seed.insert_one({"statusCheck": str(statusCheckNum)})
@@ -217,6 +219,7 @@ while True:
                                         }
                                     )
                                     continue
+                                
                             else:
                                 tweet_tree.update_one(
                                     { "_id" : tweet_id },
@@ -258,4 +261,3 @@ while True:
 
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "offload" + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
-"""
