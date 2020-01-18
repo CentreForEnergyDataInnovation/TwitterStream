@@ -67,6 +67,14 @@ while True:
             for x in tweet["entities"]["user_mentions"]:
                 user_mentions.add(x["id_str"])
 
+        full_tweet = tweets.find_one({ "_id" : tweet_id })
+        if full_tweet is not None:
+            if "extended_tweet" in full_tweet:
+                for x in full_tweet["extended_tweet"]["entities"]["hashtags"]:
+                    hashtags.add(x["text"].lower())
+                for x in full_tweet["extended_tweet"]["entities"]["user_mentions"]:
+                    user_mentions.add(x["id_str"])
+
         if "quoted_status_id_str" in tweet:
             quote = tweet_tree.find_one({"_id":tweet["quoted_status_id_str"]})
             if quote is not None and quote["user_id_str"] is not None:
@@ -76,6 +84,14 @@ while True:
                     hashtags.add(x["text"].lower())
                 for x in quote["entities"]["user_mentions"]:
                     user_mentions.add(x["id_str"])
+
+            quote_tweet = tweets.find_one({ "_id" : tweet["quoted_status_id_str"] })
+            if quote_tweet is not None:
+                if "extended_tweet" in quote_tweet:
+                    for x in quote_tweet["extended_tweet"]["entities"]["hashtags"]:
+                        hashtags.add(x["text"].lower())
+                    for x in quote_tweet["extended_tweet"]["entities"]["user_mentions"]:
+                        user_mentions.add(x["id_str"])
 
         if "ancestors" in tweet:
             ancestors = tweet["ancestors"]
