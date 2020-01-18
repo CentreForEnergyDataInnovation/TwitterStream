@@ -179,6 +179,7 @@ while True:
                                 }
                             )
                         else:
+                            print(parentTweet["ancestors"])
                             tweet_tree.update_one(
                                 {"_id": tweetCheck["_id"]},
                                 {
