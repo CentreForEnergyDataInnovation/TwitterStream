@@ -117,6 +117,9 @@ while True:
 
         tCount = len(tweetIDs)
 
+        if tCount == 0:
+            continue
+
         minSnowflake = min(tweetIDs, key=bson.int64.Int64)
 
         searching_term = "((from:"+screen_name+") OR (to:"+screen_name+") OR (@"+screen_name+")) -filter:retweets"
