@@ -60,7 +60,8 @@ while True:
             break
 
         #tweetCheck = tweet_tree.find_one({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True))
-        for tweetCheck in tweet_tree.find({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}).limit(1000):
+        #for tweetCheck in tweet_tree.find({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}).limit(1000):
+        for tweetCheck in tweet_tree.find({"scrape_status": {"$nin": ["Root", "Linked", str(statusCheckNum)]}}, sort=[("_id", 1)], collation = Collation(locale="en_US", numericOrdering=True)).limit(1000):
         
             cyclecount += 1
         
