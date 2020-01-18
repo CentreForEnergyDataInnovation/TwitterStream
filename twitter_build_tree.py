@@ -180,7 +180,6 @@ while True:
                                 }
                             )
                         else:
-                            print(parentTweet["ancestors"])
                             tweet_tree.update_one(
                                 {"_id": tweetCheck["_id"]},
                                 {
@@ -189,3 +188,18 @@ while True:
                                     }
                                 }
                             )
+
+                            childTweet = tweetCheck
+                            while parentTweet is not None:
+                                ancest = parentTweet["ancestors"]
+                                tweetCheck.update_one(
+                                    { "_id" : childTweet["_id"] },
+                                    {
+                                        "$addToSet" : {
+                                            "ancestors": { "$each" : ancest }
+                                        }
+                                    }
+                                )
+                                parent_id = parentTweet["in_reply_to_status_id_str"]
+                                childTweet = parentTweet
+                                parentTweet = tweet_tree.find_one({ "_id" : parent_id })
