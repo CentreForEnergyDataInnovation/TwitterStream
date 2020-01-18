@@ -116,6 +116,7 @@ while True:
                 parentTweet = tweet_tree.find_one(
                     {"_id": tweetCheck["in_reply_to_status_id_str"]})
                 if parentTweet is None:
+                    print("parentNone")
                     tweets_to_collect.replace_one({"_id": tweetCheck["in_reply_to_status_id_str"]}, {
                                                 "build_tree": True}, True)
                     tweet_tree.update_one(
