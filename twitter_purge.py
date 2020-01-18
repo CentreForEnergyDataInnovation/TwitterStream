@@ -45,7 +45,7 @@ for x in trackers_users.find({ "id_str" : { "$exists" : True } }):
 
 statusCheckNum = 0
 
-
+"""
 while True:
 
     tweet_check = offload_tree.find_one({})
@@ -201,7 +201,7 @@ while True:
                                 }
                             )
                             tweets_to_collect.replace_one({"_id": tweet["quoted_status_id_str"]}, {"_id": tweet["quoted_status_id_str"]}, True)
-                            print("quote not loaded")
+                            print(tweet_id +  " quote not loaded - quote is none")
                             continue
                         else:
                             if "my_hashtags" in quote_tweet:
@@ -265,4 +265,3 @@ while True:
 
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "offload" + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
-"""
