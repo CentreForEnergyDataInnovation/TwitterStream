@@ -45,7 +45,7 @@ for x in trackers_users.find({ "id_str" : { "$exists" : True } }):
 
 statusCheckNum = 0
 
-"""
+
 while True:
 
     tweet_check = offload_tree.find_one({})
@@ -265,3 +265,4 @@ while True:
 
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "offload" + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
+"""
