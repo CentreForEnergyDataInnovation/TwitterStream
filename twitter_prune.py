@@ -48,8 +48,7 @@ while True:
         {
             "$or" : [
                 { "cleanCheck" : { "$exists" : False } },
-                { "my_hashtags" : { "$exists" : False } },
-                { "cleanCheck" : False }
+                { "my_hashtags" : { "$exists" : False } }
             ],
             "scrape_status" : { "$in" : ["Root", "Linked"] }
         }
