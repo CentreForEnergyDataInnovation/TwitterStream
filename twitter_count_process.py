@@ -31,6 +31,7 @@ pre_root = 0
 pre_linked = 0
 pre_processed = 0
 pre_total = 0
+pre_hash = 0
 
 while True:
     num_unprocessed = tweet_tree.count_documents({"scrape_status" : {"$exists":False}})
@@ -39,11 +40,12 @@ while True:
     num_processed = tweet_tree.count_documents({"scrape_status" : {"$in" : ["0", "1", "2", "3", "4"]}})
     num_total = tweet_tree.count_documents({})
     num_collect = tweets_to_collect.count_documents({})
+    num_my_hash = tweet_tree.count_documents({"my_hashtags" : { "$exists" : True }})
 
     if count % 25 == 0:
         print("unprocessed" + " : " + "root" + " : " + "linked" + " : " + "processed" + " : " + "total" + " - " + "collect")
 
-    print(str(num_unprocessed)+"("+str((num_unprocessed-pre_unprocessed))+")" + " : " + str(num_root)+"("+str((num_root-pre_root))+")" + " : " + str(num_linked)+"("+str((num_linked-pre_linked))+")" + " : " + str(num_processed)+"("+str((num_processed-pre_processed))+")" + " : " + str(num_total)+"("+str((num_total-pre_total))+")" + " - " + str(num_collect))
+    print(str(num_unprocessed)+"("+str((num_unprocessed-pre_unprocessed))+")" + " : " + str(num_root)+"("+str((num_root-pre_root))+")" + " : " + str(num_linked)+"("+str((num_linked-pre_linked))+")" + " : " + str(num_processed)+"("+str((num_processed-pre_processed))+")" + " : " + str(num_total)+"("+str((num_total-pre_total))+")" + " - " + str(num_collect) + " | " + str(num_my_hash)+"("+str((num_my_hash-pre_hash))+") " + str((num_total - num_my_hash)))
     
     pre_unprocessed = num_unprocessed
     pre_root = num_root
