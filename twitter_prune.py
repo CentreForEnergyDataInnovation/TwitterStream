@@ -91,6 +91,7 @@ while True:
                     user_mentions.add(x["id_str"])
             if quote is None:
                 print("quote tree null - " + str(tweet["quoted_status_id_str"]))
+                tweets_to_collect.replace_one({"_id": tweet["quoted_status_id_str"]}, {"_id": tweet["quoted_status_id_str"]}, True)
                 continue
 
             quote_tweet = tweets.find_one({ "_id" : tweet["quoted_status_id_str"] })
