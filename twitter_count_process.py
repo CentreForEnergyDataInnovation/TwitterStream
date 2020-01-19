@@ -45,13 +45,14 @@ while True:
     if count % 25 == 0:
         print("unprocessed" + " : " + "root" + " : " + "linked" + " : " + "processed" + " : " + "total" + " - " + "collect")
 
-    print(str(num_unprocessed)+"("+str((num_unprocessed-pre_unprocessed))+")" + " : " + str(num_root)+"("+str((num_root-pre_root))+")" + " : " + str(num_linked)+"("+str((num_linked-pre_linked))+")" + " : " + str(num_processed)+"("+str((num_processed-pre_processed))+")" + " : " + str(num_total)+"("+str((num_total-pre_total))+")" + " - " + str(num_collect) + " | " + str(num_my_hash)+"("+str((num_my_hash-pre_hash))+") " + str((num_total - num_my_hash)))
+    print(str(datetime.now()) + " - " + str(num_unprocessed)+"("+str((num_unprocessed-pre_unprocessed))+")" + " : " + str(num_root)+"("+str((num_root-pre_root))+")" + " : " + str(num_linked)+"("+str((num_linked-pre_linked))+")" + " : " + str(num_processed)+"("+str((num_processed-pre_processed))+")" + " : " + str(num_total)+"("+str((num_total-pre_total))+")" + " - " + str(num_collect) + " | " + str(num_my_hash)+"("+str((num_my_hash-pre_hash))+") " + str((num_total - num_my_hash)))
     
     pre_unprocessed = num_unprocessed
     pre_root = num_root
     pre_linked = num_linked
     pre_processed = num_processed
     pre_total = num_total
+    pre_hash = num_my_hash
 
     count += 1
     time.sleep(1)
