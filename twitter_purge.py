@@ -173,17 +173,7 @@ while True:
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "valid  " + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
             else:
-                tweet_tree.update_one(
-                    { "_id" : tweet_id },
-                    {
-                        "$set" : {
-                            "purgeLoop" : str(statusCheckNum)
-                        }
-                    }
-                )
-                print("offload later")
-                continue
-                """
+                
                 matching_hashtags = valid_hashtags & hashtags_in_children
                 matching_users = valid_users & users_in_children
 
@@ -276,4 +266,4 @@ while True:
 
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "offload" + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
-                """
+                
