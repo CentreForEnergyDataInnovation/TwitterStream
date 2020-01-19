@@ -140,7 +140,7 @@ while True:
                 b = datetime.now(timezone.utc)
                 timediff = b - a
 
-                if timediff.days > 9:
+                if timediff.days > 7:
                     expire_count += 1
                     users_to_search.update_one(
                         { "_id" : tweet_id },
