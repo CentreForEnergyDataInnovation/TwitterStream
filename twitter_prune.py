@@ -48,7 +48,8 @@ while True:
         {
             "$or" : [
                 { "cleanCheck" : { "$exists" : False } },
-                { "my_hashtags" : { "$exists" : False } }
+                { "my_hashtags" : { "$exists" : False } },
+                { "cleanCheck" : False }
             ],
             "scrape_status" : { "$in" : ["Root", "Linked"] }
         }
@@ -74,6 +75,11 @@ while True:
                     hashtags.add(x["text"].lower())
                 for x in full_tweet["extended_tweet"]["entities"]["user_mentions"]:
                     user_mentions.add(x["id_str"])
+            if "entities" in full_tweet:
+                for x in full_tweet["entities"]["hashtags"]:
+                    hashtags.add(x["text"].lower())
+                for x in full_tweet["entities"]["user_mentions"]:
+                    user_mentions.add(x["id_str"])
 
         if "quoted_status_id_str" in tweet and tweet["quoted_status_id_str"] is not None:
             quote = tweet_tree.find_one({"_id":tweet["quoted_status_id_str"]})
@@ -97,6 +103,11 @@ while True:
                     for x in quote_tweet["extended_tweet"]["entities"]["hashtags"]:
                         hashtags.add(x["text"].lower())
                     for x in quote_tweet["extended_tweet"]["entities"]["user_mentions"]:
+                        user_mentions.add(x["id_str"])
+                if "entities" in quote_tweet:
+                    for x in quote_tweet["entities"]["hashtags"]:
+                        hashtags.add(x["text"].lower())
+                    for x in quote_tweet["entities"]["user_mentions"]:
                         user_mentions.add(x["id_str"])
 
         if "ancestors" in tweet:
@@ -133,6 +144,10 @@ while True:
                 tweet_valid = True
 
         if tweet_valid == True:
+
+            if "cleanCheck" in tweet and tweet["cleanCheck"] == False:
+                print("prior bad parse")
+
             tweet_tree.update_one(
                 { "_id" : tweet_id },
                 {
