@@ -135,6 +135,27 @@ while True:
                     )
                     print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "tracked" + " : " + tweet_id + " : " + str(created_at_dt))
                     continue
+                
+                if created_at_dt is None:
+                    expire_count += 1
+                    users_to_search.update_one(
+                        { "_id" : tweet_id },
+                        {
+                            "$set" : {
+                                "reply_search_status" : "Expired"
+                            }
+                        }
+                    )
+                    tweet_tree.update_one(
+                        { "_id" : tweet_id },
+                        {
+                            "$set" : {
+                                "purgeLoop" : "Expired"
+                            }
+                        }
+                    )
+                    print(str(count) + " : valid " + str(valid_count) + " : tracked " + str(tracked_count) + " : parent " + str(parent_count) + " : expired " + str(expire_count) + " : offload " + str(offload_count) + " : " + "expire " + " : " + tweet_id + " : " + str(created_at_dt))
+                    continue
 
                 a = pytz.utc.localize(created_at_dt)
                 b = datetime.now(timezone.utc)
